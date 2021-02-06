@@ -41,7 +41,6 @@ build/Release
 node_modules/
 jspm_packages/
 postgresdata/
-.vscode/
 
 
 # TypeScript v1 declaration files

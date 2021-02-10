@@ -1,5 +1,8 @@
---migration
---changeset create table
+import pool from '../dbconfig/dbconnector';
+
+const client = pool.connect();
+
+const sql = `
 CREATE TABLE todos
 (
     id integer NOT NULL,
@@ -8,10 +11,16 @@ CREATE TABLE todos
     "isFinished" boolean NOT NULL,
     CONSTRAINT todos_pkey PRIMARY KEY (id)
 )
-
---changeset test data
 INSERT INTO todos VALUES
 (
     1,'Do something','Do Something good',true
 
 )
+`
+const result = client.query(sql);
+console.log(result);
+  
+client.release();
+
+
+

@@ -1,7 +1,7 @@
 import express, { Application } from 'express';
 import bodyParser from 'body-parser';
-import todosRouter from './routers/TodosRouter';
-import pool from './dbconfig/dbconnector';
+//import todosRouter from './routers/TodosRouter';
+//import pool from './dbconfig/dbconnector';
 
 class Server {
     private app : Application;
@@ -9,8 +9,8 @@ class Server {
     constructor() {
         this.app = express();
         this.config();
-        this.routerConfig();
-        this.dbConnect();
+        //this.routerConfig();
+        //this.dbConnect();
 
     }
 
@@ -20,15 +20,24 @@ class Server {
     }
 
 
-    private dbConnect() {
-        pool.connect(function (err, client, done) {
-            if (err) throw new Error(err);
-            console.log('Connected');
-          }); 
-    }
+    // private dbConnect() {
+    //     pool.connect(function (err, client, done) {
+    //         if (err) throw new Error(err);
+    //         console.log('Connected');
+    //       }); 
+    // }
 
-    private routerConfig() {
-        this.app.use('/todos', todosRouter);
+    // private routerConfig() {
+    //     this.app.use('/todos', todosRouter);
+    // }
+
+    private debugContainer() {
+
+        this.app.get('/', (req, res) => {
+            let dbname = process.env.DATABASE_ENDPONT;
+            let dbsecret = process.env.SECRET_NAME;
+            res.send(`DBname is ${dbname}<br>DBSecret is ${dbsecret}`);
+        });
     }
 
     public start = (port: number) => {

@@ -23,6 +23,7 @@ class Server {
 
 
     private dbConnect() {
+        console.log(`postgres://postgres:${process.env.SECRET_NAME}@${process.env.DATABASE_ENDPOINT}:5432/tododb`)
         pool.connect(function (err, client, done) {
             if (err) throw new Error(err);
             console.log('Connected');

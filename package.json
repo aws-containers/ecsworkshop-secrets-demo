@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "dotenv": "^8.2.0",
-    "express": "^4.16.4",
-    "pg-migrations": "^0.1.0"
+    "express": "^4.16.4"
   }
 }

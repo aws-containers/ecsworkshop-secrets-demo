@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import bodyParser from 'body-parser';
 import todosRouter from './routers/TodosRouter';
+import migrateRouter from './routers/MigrateRouter';
 import pool from './dbconfig/dbconnector';
 
 class Server {
@@ -30,6 +31,7 @@ class Server {
 
     private routerConfig() {
         this.app.use('/todos', todosRouter);
+        this.app.use('/migrate', migrateRouter);
     }
 
     // private debugContainer() {

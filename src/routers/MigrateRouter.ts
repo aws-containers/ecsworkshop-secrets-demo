@@ -7,7 +7,7 @@ migrateRouter.get('/', async (req, res) => {
   try {
     const client = await pool.connect();
 
-    const sql = `
+    const create = `
         CREATE TABLE todos
         (
             id integer NOT NULL,
@@ -16,18 +16,22 @@ migrateRouter.get('/', async (req, res) => {
             "isFinished" boolean NOT NULL,
             CONSTRAINT todos_pkey PRIMARY KEY (id)
         )
+        `
+      const insert = `
         INSERT INTO todos VALUES
         (
             1,'Do something','Do Something good',true
 
         )
     `
-    const { result } = await client.query(sql);
-    const migrate = result;
-    
+    const { resultCreate } = await client.query(create);
+    const { resultInsert } = await client.query(insert);
+
+    const result = `${resultCreate} + ${resultInsert}`
+
     client.release();
 
-    res.send(migrate);
+    res.send(result);
   } catch (error) {
     res.status(400).send(`${error} in migrate`);
   }

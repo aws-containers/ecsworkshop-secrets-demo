@@ -18,12 +18,10 @@ class Server {
     private config() {
         this.app.use(bodyParser.urlencoded({ extended:true }));
         this.app.use(bodyParser.json({ limit: '1mb' })); // 100kb default
-        //this.debugContainer();
     }
 
 
     private dbConnect() {
-        console.log(`postgres://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASS}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_NAME}`)
         pool.connect(function (err, client, done) {
             if (err) throw new Error(err);
             console.log('Connected');
@@ -34,15 +32,6 @@ class Server {
         this.app.use('/todos', todosRouter);
         this.app.use('/migrate', migrateRouter);
     }
-
-    // private debugContainer() {
-
-    //     this.app.get('/', (req, res) => {
-    //         let dbname = process.env.DATABASE_ENDPONT;
-    //         let dbsecret = process.env.SECRET_NAME;
-    //         res.send(`DBname is ${dbname}<br>DBSecret is ${dbsecret}`);
-    //     });
-    //}
 
     public start = (port: number) => {
         return new Promise((resolve, reject) => {

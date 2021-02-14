@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const app = express()
 const port = 4000;
 
@@ -18,6 +19,7 @@ app.use(
         extended: true,
     })
 )
+app.use(cors())
 
 //Routers
 app.get('/', (request, response) => {

@@ -3,7 +3,7 @@ import pool from '../dbconfig/dbconnector';
 
 const migrateRouter = Router();
 
-migrateRouter.get('/', async (req, res) => {
+migrateRouter.get('/migrate', async (req, res) => {
   try {
     const client = await pool.connect();
 

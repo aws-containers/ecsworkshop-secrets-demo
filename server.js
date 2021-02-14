@@ -30,10 +30,6 @@ app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
 
-app.get('/', (request, response) => {
-    response.json({ info: 'running' })
-})
-
 app.get("/todos", async (req, res) => {
     try {
         const allTodos = await pool.query("SELECT * FROM public.todos");

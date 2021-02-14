@@ -14,6 +14,7 @@ const pool = new Pool({
     password: process.env.POSTGRES_PASS,
     port: process.env.POSTGRES_PORT,
 })
+console.log(process.env.POSTGRES_HOST);
 
 app.use(bodyParser.json())
 app.use(
@@ -91,7 +92,7 @@ app.delete("/todos/:id", async (req, res) => {
 app.get('/migrate', async (req, res) => {
     try {
         const create = `
-          DROP TABLE todos;
+          DROP TABLE IF EXISTS todos;
           CREATE TABLE todos
           (
               todo_id SERIAL PRIMARY KEY,

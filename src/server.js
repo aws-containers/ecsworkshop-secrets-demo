@@ -36,9 +36,10 @@ app.get("/todos", async (req, res) => {
 });
 
 app.post("/todos", async (req, res) => {
+    console.log(req);
     try {
         const { description } = req.body;
-        console.log(req.body);
+        //console.log(req.body);
         const newTodo = await pool.query("INSERT INTO public.todos (description) VALUES($1) RETURNING * ", [description]);
         res.status(200).json(newTodo.rows[0]);
     } catch (error) {
@@ -74,7 +75,7 @@ app.delete("/todos/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const deleteTodo = await pool.query("DELETE FROM public.todos WHERE todo_id = $1", [id])
-        res.status.json("Todo deleted.")
+        res.status(200).json("Todo deleted.")
 
     } catch (error) {
         console.log(error.message)
@@ -84,6 +85,7 @@ app.delete("/todos/:id", async (req, res) => {
 app.get('/migrate', async (req, res) => {
     try {
         const create = `
+          DROP TABLE todos;
           CREATE TABLE todos
           (
               id integer NOT NULL,
@@ -91,23 +93,16 @@ app.get('/migrate', async (req, res) => {
               description text NOT NULL,
               "isFinished" boolean NOT NULL,
               CONSTRAINT todos_pkey PRIMARY KEY (id)
-          )
-          `
-        const insert = `
+          );
           INSERT INTO todos VALUES
           (
               1,'Do something','Do Something good',true
   
-          )
-      `
-        const { resultCreate } = await pool.query(create);
-        const { resultInsert } = await pool.query(insert);
+          );
+        `
+        const resultCreate = await pool.query(create);
 
-        const result = `${resultCreate} + ${resultInsert}`
-
-
-
-        res.status(200).send(result);
+        res.status(200).send(resultCreate);
     } catch (error) {
         res.status(400).send(`${error} in migrate`);
     }

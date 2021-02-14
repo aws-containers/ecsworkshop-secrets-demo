@@ -21,7 +21,11 @@ app.use(
         extended: true,
     })
 )
-app.use(cors())
+const corsOptions = {
+    origin: "http://localhost:4000"
+};
+
+app.use(cors(corsOptions));
 
 //Routers
 

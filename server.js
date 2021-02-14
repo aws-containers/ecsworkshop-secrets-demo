@@ -1,6 +1,8 @@
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+
 const app = express()
 const port = 4000;
 
@@ -22,6 +24,12 @@ app.use(
 app.use(cors())
 
 //Routers
+
+app.use(express.static(path.join(__dirname, 'build')));
+app.get('/', function (req, res) {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+})
+
 app.get('/', (request, response) => {
     response.json({ info: 'running' })
 })
@@ -36,14 +44,12 @@ app.get("/todos", async (req, res) => {
 });
 
 app.post("/todos", async (req, res) => {
-    console.log(req);
     try {
         const { description } = req.body;
-        //console.log(req.body);
         const newTodo = await pool.query("INSERT INTO public.todos (description) VALUES($1) RETURNING * ", [description]);
         res.status(200).json(newTodo.rows[0]);
     } catch (error) {
-        console.log(error.meessage)
+        console.log(error)
     }
 });
 
@@ -67,7 +73,7 @@ app.put("/todos/:id", async (req, res) => {
         res.status(200).json("Todo updated.")
 
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
     }
 });
 
@@ -78,7 +84,7 @@ app.delete("/todos/:id", async (req, res) => {
         res.status(200).json("Todo deleted.")
 
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
     }
 });
 
@@ -88,15 +94,12 @@ app.get('/migrate', async (req, res) => {
           DROP TABLE todos;
           CREATE TABLE todos
           (
-              id integer NOT NULL,
-              title text  NOT NULL,
-              description text NOT NULL,
-              "isFinished" boolean NOT NULL,
-              CONSTRAINT todos_pkey PRIMARY KEY (id)
+              todo_id SERIAL PRIMARY KEY,
+              description VARCHAR(255)
           );
-          INSERT INTO todos VALUES
+          INSERT INTO public.todos (description) VALUES
           (
-              1,'Do something','Do Something good',true
+              'Do something excellent today'
   
           );
         `
@@ -104,7 +107,7 @@ app.get('/migrate', async (req, res) => {
 
         res.status(200).send(resultCreate);
     } catch (error) {
-        res.status(400).send(`${error} in migrate`);
+        console.log(error)
     }
 });
 

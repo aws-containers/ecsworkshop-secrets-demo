@@ -5,18 +5,25 @@ import migrateRouter from './routers/MigrateRouter';
 import pool from './dbconfig/dbconnector';
 
 class Server {
-    private app : Application;
+    private app: Application;
+
+    private port = parseInt(process.env.PORT || '4000');
 
     constructor() {
         this.app = express();
         this.config();
         this.routerConfig();
         this.dbConnect();
+        this.start(this.port)
+            .then(port => console.log(`Running on port ${this.port}`))
+            .catch(error => {
+                console.log(error)
+            });
 
     }
 
     private config() {
-        this.app.use(bodyParser.urlencoded({ extended:true }));
+        this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(bodyParser.json({ limit: '1mb' })); // 100kb default
     }
 
@@ -25,7 +32,7 @@ class Server {
         pool.connect(function (err, client, done) {
             if (err) throw new Error(err);
             console.log('Connected');
-          }); 
+        });
     }
 
     private routerConfig() {
@@ -40,6 +47,7 @@ class Server {
             }).on('error', (err: Object) => reject(err));
         });
     }
+
 }
 
 export default Server;

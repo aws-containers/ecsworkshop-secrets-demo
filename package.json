@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/app.js",
+    "start": "node dist/server.js",
     "prestart": "npm run build",
     "build": "tsc"
   },

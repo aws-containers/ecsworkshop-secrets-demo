@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/starter.js",
-    "prestart": "npm run build",
-    "build": "tsc"
+    "start": "node server.js",
+    "build": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -23,9 +22,7 @@
     "@types/express": "^4.16.1",
     "@types/node": "^14.14.25",
     "iconv": "^3.0.0",
-    "pg": "^8.5.1",
-    "tslint": "^5.12.1",
-    "typescript": "^3.3.3"
+    "pg": "^8.5.1"
   },
   "dependencies": {
     "dotenv": "^8.2.0",

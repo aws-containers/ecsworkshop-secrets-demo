@@ -4,10 +4,10 @@ import EditTodo from "./EditTodo";
 const ListTodos = () => {
 
     const [todos, setTodos] = useState([]);
-
+    
     const deleteTodo = async (id) => {
         try {
-            await fetch(`http://localhost:4000/todos/${id}`, {
+            await fetch(`/todos/${id}`, {
                 method: "DELETE"
             });
 
@@ -19,7 +19,10 @@ const ListTodos = () => {
 
     const getTodos = async () => {
         try {
-            const response = await fetch("http://localhost:4000/todos");
+            const response = await fetch("/todos", {
+                mode: "cors",
+                cache: "no-cache"
+            });
             const jsonData = await response.json();
 
             setTodos(jsonData);

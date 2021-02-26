@@ -116,4 +116,5 @@ app.get('/migrate', async (req, res) => {
 //Start Server
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
+    console.log(`${process.env.GITHUB_TOKEN}`)
 })

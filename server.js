@@ -14,7 +14,6 @@ const pool = new Pool({
     password: process.env.POSTGRES_PASS,
     port: process.env.POSTGRES_PORT,
 })
-console.log(process.env.POSTGRES_HOST);
 
 app.use(bodyParser.json())
 app.use(
@@ -116,5 +115,4 @@ app.get('/migrate', async (req, res) => {
 //Start Server
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
-    console.log(`${process.env.GITHUB_TOKEN}`)
 })

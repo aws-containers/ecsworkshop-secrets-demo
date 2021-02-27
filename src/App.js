@@ -9,7 +9,6 @@ function App() {
       <div className="container">
         <InputTodo />
         <ListTodos />
-        <EnvironVars />
       </div>
     </Fragment>
   )

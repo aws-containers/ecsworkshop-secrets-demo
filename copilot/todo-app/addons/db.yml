@@ -113,23 +113,22 @@ Resources:
         SecondsUntilAutoPause: 1000
 
 Outputs:
-  PostgresHost: # injected as RDS_ENDPOINT environment variable by Copilot.
+  PostgresHost: # injected as POSTGRES_HOST environment variable by Copilot.
     Description: 'The connection endpoint for the DB cluster.'
-    #Value: !GetAtt 'AuroraDBCluster.Endpoint.Address'
     Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:host}}' ]]
 
-  PostgresPass: # injected as RDS_SECRET environment variable by Copilot.
+  PostgresPass: # injected as POSTGRES_PASS environment variable by Copilot.
     Description: 'The secret that username and password.'
     Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:password}}' ]]
     
-  PostgresUser:
+  PostgresUser: # injected as POSTGRES_USER environment variable by Copilot.
     Description: 'username'
     Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:username}}' ]]
     
-  PostgresName:
+  PostgresName: # injected as POSTGRES_NAME environment variable by Copilot.
     Description: 'db name'
     Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:dbname}}' ]]
     
-  PostgresPort:
+  PostgresPort: # injected as POSTGRES_PORT environment variable by Copilot.
     Description: 'port'
     Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:port}}' ]]

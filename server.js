@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const _ = require('lodash');
 
 const app = express()
 const port = 4000;
@@ -26,6 +27,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+const showEnv = () => {
+    const envResult = {};
+    _.each(process.env, (value, key) => {
+        console.log(`${key} : ${value}`)
+    });
+}
 
 //Routers
 
@@ -115,4 +123,10 @@ app.get('/migrate', async (req, res) => {
 //Start Server
 app.listen(port, () => {
     console.log(`App running on port ${port}`);
+    showEnv();
 })
+
+
+
+
+

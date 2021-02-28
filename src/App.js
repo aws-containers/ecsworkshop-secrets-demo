@@ -1,7 +1,6 @@
 import React, { Fragment } from 'react';
 import InputTodo from "./components/InputTodo";
 import ListTodos from "./components/ListTodos";
-import ShowEnvironment from "./components/ShowEnvironment";
 
 function App() {
   return (
@@ -9,9 +8,6 @@ function App() {
       <div className="container">
         <InputTodo />
         <ListTodos />
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <ShowEnvironment />
-        </div>
       </div>
     </Fragment>
   )

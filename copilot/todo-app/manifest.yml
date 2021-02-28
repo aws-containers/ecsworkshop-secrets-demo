@@ -33,11 +33,11 @@ count: 1
 
 # Optional fields for more advanced use-cases.
 #
-#variables:                    # Pass environment variables as key value pairs.
-#  LOG_LEVEL: info
+variables:                    # Pass environment variables as key value pairs.
+  LOG_LEVEL: info
 #
-secrets:                      # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
-  GITHUB_TOKEN: GH_WEBHOOK_SECRET  # The key is the name of the environment variable, the value is the name of the SSM parameter.
+#secrets:                      # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
+#  GITHUB_TOKEN: GH_WEBHOOK_SECRET  # The key is the name of the environment variable, the value is the name of the SSM parameter.
 
 # You can override any of the values defined above by environment.
 #environments:

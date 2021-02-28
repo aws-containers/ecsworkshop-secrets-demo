@@ -1,6 +1,6 @@
 FROM node:14
 
-RUN apt-get update || : && apt-get install python -y
+RUN apt-get update && apt-get install python -y
 
 RUN mkdir -p /usr/app
 WORKDIR /usr/app

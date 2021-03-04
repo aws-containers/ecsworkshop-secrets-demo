@@ -1,3 +1,7 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::SecretsManager-2020-07-23
+
 Parameters:
   App:
     Type: String
@@ -73,29 +77,46 @@ Resources:
       Parameters:
         client_encoding: 'UTF8'
 
-  AuroraMasterSecret:
+  AuroraSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
       Name: !Join [ '/', [ !Ref App, !Ref Env, !Ref Name, 'aurora-pg' ] ]
-      Description: !Join [ '', [ 'Aurora PostgreSQL Master User Secret ', 'for CloudFormation Stack ', !Ref 'AWS::StackName' ] ]
+      Description: !Join [ '', [ 'Aurora PostgreSQL Main User Secret ', 'for CloudFormation Stack ', !Ref 'AWS::StackName' ] ]
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: "password"
         ExcludeCharacters: '"@/\'
         PasswordLength: 16
-
+        
   SecretAuroraClusterAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
-      SecretId: !Ref AuroraMasterSecret
+      SecretId: !Ref AuroraSecret
       TargetId: !Ref AuroraDBCluster
       TargetType: AWS::RDS::DBCluster
+      
+  SecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: SecretAuroraClusterAttachment 
+    Properties:
+      SecretId: !Ref AuroraSecret
+      HostedRotationLambda:
+        RotationType: MySQLSingleUser
+        RotationLambdaName: SecretsManagerRotation
+        VpcSecurityGroupIds: !Ref ClusterSecurityGroup
+        VpcSubnetIds:
+          Fn::Join:
+            - ","
+            - - !Select [0, !Split [",", { 'Fn::ImportValue': !Sub '${App}-${Env}-PrivateSubnets' }]]
+              - !Select [1, !Split [",", { 'Fn::ImportValue': !Sub '${App}-${Env}-PrivateSubnets' }]]
+      RotationRules:
+        AutomaticallyAfterDays: 30
 
   AuroraDBCluster:
     Type: 'AWS::RDS::DBCluster'
     Properties:
-      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:username}}' ]]
-      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:password}}' ]]
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:password}}' ]]
       DatabaseName: 'tododb'
       Engine: aurora-postgresql
       EngineVersion: '10.7'
@@ -115,20 +136,20 @@ Resources:
 Outputs:
   PostgresHost: # injected as POSTGRES_HOST environment variable by Copilot.
     Description: 'The connection endpoint for the DB cluster.'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:host}}' ]]
+    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:host}}' ]]
 
   PostgresPass: # injected as POSTGRES_PASS environment variable by Copilot.
     Description: 'The secret that username and password.'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:password}}' ]]
+    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:password}}' ]]
     
   PostgresUser: # injected as POSTGRES_USER environment variable by Copilot.
     Description: 'username'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:username}}' ]]
+    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:username}}' ]]
     
   PostgresName: # injected as POSTGRES_NAME environment variable by Copilot.
     Description: 'db name'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:dbname}}' ]]
+    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:dbname}}' ]]
     
   PostgresPort: # injected as POSTGRES_PORT environment variable by Copilot.
     Description: 'port'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraMasterSecret, ':SecretString:port}}' ]]
+    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:port}}' ]]

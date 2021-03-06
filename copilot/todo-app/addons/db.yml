@@ -15,89 +15,124 @@ Parameters:
 
 Resources:
   AuroraKMSCMK:
-    Type: 'AWS::KMS::Key'
+    Type: "AWS::KMS::Key"
     DeletionPolicy: Retain
     Properties:
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
-            Action: 'kms:*'
-            Resource: '*'
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
           - Effect: Allow
             Principal:
-              AWS: '*'
+              AWS: "*"
             Action:
-              - 'kms:Encrypt'
-              - 'kms:Decrypt'
-              - 'kms:ReEncrypt*'
-              - 'kms:GenerateDataKey*'
-              - 'kms:CreateGrant'
-              - 'kms:ListGrants'
-              - 'kms:DescribeKey'
-            Resource: '*'
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:CreateGrant"
+              - "kms:ListGrants"
+              - "kms:DescribeKey"
+            Resource: "*"
             Condition:
               StringEquals:
-                'kms:CallerAccount': !Ref 'AWS::AccountId'
-                'kms:ViaService': !Sub 'rds.${AWS::Region}.amazonaws.com'
+                "kms:CallerAccount": !Ref "AWS::AccountId"
+                "kms:ViaService": !Sub "rds.${AWS::Region}.amazonaws.com"
 
   AuroraKMSCMKAlias:
-    Type: 'AWS::KMS::Alias'
+    Type: "AWS::KMS::Alias"
     DeletionPolicy: Retain
-    DependsOn: ['AuroraDBCluster']
+    DependsOn: ["AuroraDBCluster"]
     Properties:
-      AliasName: !Sub 'alias/${AuroraDBCluster}'
+      AliasName: !Sub "alias/${AuroraDBCluster}"
       TargetKeyId: !Ref AuroraKMSCMK
 
   DBSubnetGroup:
-    Type: 'AWS::RDS::DBSubnetGroup'
+    Type: "AWS::RDS::DBSubnetGroup"
     Properties:
-      DBSubnetGroupDescription: !Ref 'AWS::StackName'
-      SubnetIds: !Split [ ',', { 'Fn::ImportValue': !Sub '${App}-${Env}-PrivateSubnets' } ]
+      DBSubnetGroupDescription: !Ref "AWS::StackName"
+      SubnetIds:
+        !Split [",", { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" }]
 
   ClusterSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
+    Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupDescription: !Ref 'AWS::StackName'
+      GroupDescription: !Ref "AWS::StackName"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          SourceSecurityGroupId: { 'Fn::ImportValue': !Sub '${App}-${Env}-EnvironmentSecurityGroup' }
-          Description: 'Access to environment security group'
-      VpcId: { 'Fn::ImportValue': !Sub '${App}-${Env}-VpcId' }
+          SourceSecurityGroupId:
+            { "Fn::ImportValue": !Sub "${App}-${Env}-EnvironmentSecurityGroup" }
+          Description: "Access to environment security group"
+      VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
 
   DBClusterParameterGroup:
-    Type: 'AWS::RDS::DBClusterParameterGroup'
+    Type: "AWS::RDS::DBClusterParameterGroup"
     Properties:
-      Description: !Ref 'AWS::StackName'
-      Family: 'aurora-postgresql10'
+      Description: !Ref "AWS::StackName"
+      Family: "aurora-postgresql10"
       Parameters:
-        client_encoding: 'UTF8'
+        client_encoding: "UTF8"
 
   AuroraSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Join [ '/', [ !Ref App, !Ref Env, !Ref Name, 'aurora-pg' ] ]
-      Description: !Join [ '', [ 'Aurora PostgreSQL Main User Secret ', 'for CloudFormation Stack ', !Ref 'AWS::StackName' ] ]
+      Name: !Join ["/", [!Ref App, !Ref Env, !Ref Name, "aurora-pg"]]
+      Description:
+        !Join [
+          "",
+          [
+            "Aurora PostgreSQL Main User Secret ",
+            "for CloudFormation Stack ",
+            !Ref "AWS::StackName",
+          ],
+        ]
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: "password"
         ExcludeCharacters: '"@/\'
         PasswordLength: 16
-        
+
   SecretAuroraClusterAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment
     Properties:
       SecretId: !Ref AuroraSecret
       TargetId: !Ref AuroraDBCluster
       TargetType: AWS::RDS::DBCluster
-      
+
+  SecretsManagerVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      SubnetIds:
+        - !Select [
+            0,
+            !Split [
+              ",",
+              { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
+            ],
+          ]
+        - !Select [
+            1,
+            !Split [
+              ",",
+              { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
+            ],
+          ]
+      SecurityGroupIds:
+        - !Ref ClusterSecurityGroup
+      VpcEndpointType: "Interface"
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
+      PrivateDnsEnabled: true
+      VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
+
   SecretRotationSchedule:
     Type: AWS::SecretsManager::RotationSchedule
-    DependsOn: SecretAuroraClusterAttachment 
+    DependsOn: SecretAuroraClusterAttachment
     Properties:
       SecretId: !Ref AuroraSecret
       HostedRotationLambda:
@@ -107,21 +142,50 @@ Resources:
         VpcSubnetIds:
           Fn::Join:
             - ","
-            - - !Select [0, !Split [",", { 'Fn::ImportValue': !Sub '${App}-${Env}-PrivateSubnets' }]]
-              - !Select [1, !Split [",", { 'Fn::ImportValue': !Sub '${App}-${Env}-PrivateSubnets' }]]
+            - - !Select [
+                  0,
+                  !Split [
+                    ",",
+                    { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
+                  ],
+                ]
+              - !Select [
+                  1,
+                  !Split [
+                    ",",
+                    { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
+                  ],
+                ]
       RotationRules:
         AutomaticallyAfterDays: 30
 
   AuroraDBCluster:
-    Type: 'AWS::RDS::DBCluster'
+    Type: "AWS::RDS::DBCluster"
     Properties:
-      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:username}}' ]]
-      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:password}}' ]]
-      DatabaseName: 'tododb'
+      MasterUsername:
+        !Join [
+          "",
+          [
+            "{{resolve:secretsmanager:",
+            !Ref AuroraSecret,
+            ":SecretString:username}}",
+          ],
+        ]
+      MasterUserPassword:
+        !Join [
+          "",
+          [
+            "{{resolve:secretsmanager:",
+            !Ref AuroraSecret,
+            ":SecretString:password}}",
+          ],
+        ]
+      DatabaseName: "tododb"
       Engine: aurora-postgresql
-      EngineVersion: '10.7'
+      EngineVersion: "10.7"
       EngineMode: serverless
       StorageEncrypted: true
+      DeletionPolicy: Delete
       KmsKeyId: !Ref AuroraKMSCMK
       DBClusterParameterGroupName: !Ref DBClusterParameterGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
@@ -135,21 +199,61 @@ Resources:
 
 Outputs:
   PostgresHost: # injected as POSTGRES_HOST environment variable by Copilot.
-    Description: 'The connection endpoint for the DB cluster.'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:host}}' ]]
+    Description: "The connection endpoint for the DB cluster."
+    Value:
+      !Join [
+        "",
+        [
+          "{{resolve:secretsmanager:",
+          !Ref AuroraSecret,
+          ":SecretString:host}}",
+        ],
+      ]
 
   PostgresPass: # injected as POSTGRES_PASS environment variable by Copilot.
-    Description: 'The secret that username and password.'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:password}}' ]]
-    
+    Description: "The secret that username and password."
+    Value:
+      !Join [
+        "",
+        [
+          "{{resolve:secretsmanager:",
+          !Ref AuroraSecret,
+          ":SecretString:password}}",
+        ],
+      ]
+
   PostgresUser: # injected as POSTGRES_USER environment variable by Copilot.
-    Description: 'username'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:username}}' ]]
-    
+    Description: "username"
+    Value:
+      !Join [
+        "",
+        [
+          "{{resolve:secretsmanager:",
+          !Ref AuroraSecret,
+          ":SecretString:username}}",
+        ],
+      ]
+
   PostgresName: # injected as POSTGRES_NAME environment variable by Copilot.
-    Description: 'db name'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:dbname}}' ]]
-    
+    Description: "db name"
+    Value:
+      !Join [
+        "",
+        [
+          "{{resolve:secretsmanager:",
+          !Ref AuroraSecret,
+          ":SecretString:dbname}}",
+        ],
+      ]
+
   PostgresPort: # injected as POSTGRES_PORT environment variable by Copilot.
-    Description: 'port'
-    Value: !Join ['', ['{{resolve:secretsmanager:', !Ref AuroraSecret, ':SecretString:port}}' ]]
+    Description: "port"
+    Value:
+      !Join [
+        "",
+        [
+          "{{resolve:secretsmanager:",
+          !Ref AuroraSecret,
+          ":SecretString:port}}",
+        ],
+      ]

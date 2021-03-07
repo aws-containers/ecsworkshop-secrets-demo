@@ -192,6 +192,7 @@ Resources:
 
   SecretRotationTemplate:
     Type: AWS::Serverless::Application
+    DependsOn: SecretAuroraClusterAttachment
     Properties:
       Location:
         ApplicationId: arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser
@@ -270,6 +271,7 @@ Resources:
       Engine: aurora-postgresql
       EngineVersion: "10.7"
       EngineMode: serverless
+      EnableHttpEndpoint: true
       StorageEncrypted: true
       DBClusterParameterGroupName: default.aurora-postgresql10
       DBSubnetGroupName: !Ref DBSubnetGroup

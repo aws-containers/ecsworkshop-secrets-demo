@@ -1,6 +1,8 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
-Transform: AWS::SecretsManager-2020-07-23
+Transform:
+  - "AWS::Serverless-2016-10-31"
+  - "AWS::SecretsManager-2020-07-23"
 
 Parameters:
   App:
@@ -14,42 +16,97 @@ Parameters:
     Description: The name of the service, job, or workflow being deployed.
 
 Resources:
-  AuroraKMSCMK:
-    Type: "AWS::KMS::Key"
-    DeletionPolicy: Retain
+  EipA:
+    Type: AWS::EC2::EIP
     Properties:
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
-          - Effect: Allow
-            Principal:
-              AWS: "*"
-            Action:
-              - "kms:Encrypt"
-              - "kms:Decrypt"
-              - "kms:ReEncrypt*"
-              - "kms:GenerateDataKey*"
-              - "kms:CreateGrant"
-              - "kms:ListGrants"
-              - "kms:DescribeKey"
-            Resource: "*"
-            Condition:
-              StringEquals:
-                "kms:CallerAccount": !Ref "AWS::AccountId"
-                "kms:ViaService": !Sub "rds.${AWS::Region}.amazonaws.com"
+      Domain: vpc
 
-  AuroraKMSCMKAlias:
-    Type: "AWS::KMS::Alias"
-    DeletionPolicy: Retain
-    DependsOn: ["AuroraDBCluster"]
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
     Properties:
-      AliasName: !Sub "alias/${AuroraDBCluster}"
-      TargetKeyId: !Ref AuroraKMSCMK
+      AllocationId: !GetAtt EipA.AllocationId
+      SubnetId:
+        !Select [
+          0,
+          !Split [
+            ",",
+            { "Fn::ImportValue": !Sub "${App}-${Env}-PublicSubnets" },
+          ],
+        ]
+
+  RouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
+
+  RouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RouteTableA
+      SubnetId:
+        !Select [
+          0,
+          !Split [
+            ",",
+            { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
+          ],
+        ]
+
+  DefaultRouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGatewayA
+
+  EipB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EipB.AllocationId
+      SubnetId:
+        !Select [
+          1,
+          !Split [
+            ",",
+            { "Fn::ImportValue": !Sub "${App}-${Env}-PublicSubnets" },
+          ],
+        ]
+
+  RouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
+
+  RouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RouteTableB
+      SubnetId:
+        !Select [
+          1,
+          !Split [
+            ",",
+            { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
+          ],
+        ]
+
+  DefaultRouteB:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGatewayB
 
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
@@ -61,23 +118,50 @@ Resources:
   ClusterSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupDescription: !Ref "AWS::StackName"
       SecurityGroupIngress:
-        - IpProtocol: tcp
+        - ToPort: 5432
           FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId:
-            { "Fn::ImportValue": !Sub "${App}-${Env}-EnvironmentSecurityGroup" }
-          Description: "Access to environment security group"
+          IpProtocol: tcp
+          Description: "from 0.0.0.0/0:5432"
+          CidrIp: 0.0.0.0/0
       VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
+      GroupDescription: RDS security group
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          Description: Allow all outbound traffic by default
+          CidrIp: 0.0.0.0/0
 
-  DBClusterParameterGroup:
-    Type: "AWS::RDS::DBClusterParameterGroup"
+  SecurityGroupfromRDSStackdbCredentialsRotationSecurityGroup:
+    Type: AWS::EC2::SecurityGroupIngress
     Properties:
+      IpProtocol: tcp
       Description: !Ref "AWS::StackName"
-      Family: "aurora-postgresql10"
-      Parameters:
-        client_encoding: "UTF8"
+      FromPort:
+        Fn::GetAtt:
+          - AuroraDBCluster
+          - Endpoint.Port
+      GroupId:
+        Fn::GetAtt:
+          - ClusterSecurityGroup
+          - GroupId
+      SourceSecurityGroupId:
+        Fn::GetAtt:
+          - RotationSecurityGroup
+          - GroupId
+      ToPort:
+        Fn::GetAtt:
+          - AuroraDBCluster
+          - Endpoint.Port
+
+  RotationSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
+      GroupDescription: !Ref "AWS::StackName"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          Description: Allow all outbound traffic by default
+          CidrIp: 0.0.0.0/0
 
   AuroraSecret:
     Type: AWS::SecretsManager::Secret
@@ -95,7 +179,8 @@ Resources:
       GenerateSecretString:
         SecretStringTemplate: '{"username": "postgres"}'
         GenerateStringKey: "password"
-        ExcludeCharacters: '"@/\'
+        ExcludePunctuation: true
+        IncludeSpace: false
         PasswordLength: 16
 
   SecretAuroraClusterAttachment:
@@ -105,41 +190,17 @@ Resources:
       TargetId: !Ref AuroraDBCluster
       TargetType: AWS::RDS::DBCluster
 
-  SecretsManagerVPCEndpoint:
-    Type: AWS::EC2::VPCEndpoint
+  SecretRotationTemplate:
+    Type: AWS::Serverless::Application
     Properties:
-      SubnetIds:
-        - !Select [
-            0,
-            !Split [
-              ",",
-              { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
-            ],
-          ]
-        - !Select [
-            1,
-            !Split [
-              ",",
-              { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
-            ],
-          ]
-      SecurityGroupIds:
-        - !Ref ClusterSecurityGroup
-      VpcEndpointType: "Interface"
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
-      PrivateDnsEnabled: true
-      VpcId: { "Fn::ImportValue": !Sub "${App}-${Env}-VpcId" }
-
-  SecretRotationSchedule:
-    Type: AWS::SecretsManager::RotationSchedule
-    DependsOn: SecretAuroraClusterAttachment
-    Properties:
-      SecretId: !Ref AuroraSecret
-      HostedRotationLambda:
-        RotationType: MySQLSingleUser
-        RotationLambdaName: SecretsManagerRotation
-        VpcSecurityGroupIds: !Ref ClusterSecurityGroup
-        VpcSubnetIds:
+      Location:
+        ApplicationId: arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser
+        SemanticVersion: 1.1.60
+      Parameters:
+        endpoint: !Sub https://secretsmanager.${AWS::Region}.amazonaws.com
+        functionName: !Sub ${AWS::StackName}-func
+        vpcSecurityGroupIds: !Ref RotationSecurityGroup
+        vpcSubnetIds:
           Fn::Join:
             - ","
             - - !Select [
@@ -156,6 +217,31 @@ Resources:
                     { "Fn::ImportValue": !Sub "${App}-${Env}-PrivateSubnets" },
                   ],
                 ]
+
+  SecretCredentialPolicy:
+    Type: "AWS::SecretsManager::ResourcePolicy"
+    Properties:
+      SecretId: !Ref AuroraSecret
+      ResourcePolicy:
+        Version: 2012-10-17
+        Statement:
+          - Action: "secretsmanager:DeleteSecret"
+            Resource: "*"
+            Effect: Deny
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:"
+                  - !Ref "AWS::Partition"
+                  - ":iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+
+  SecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    Properties:
+      SecretId: !Ref AuroraSecret
+      RotationLambdaARN: !GetAtt SecretRotationTemplate.Outputs.RotationLambdaARN
       RotationRules:
         AutomaticallyAfterDays: 30
 
@@ -185,9 +271,7 @@ Resources:
       EngineVersion: "10.7"
       EngineMode: serverless
       StorageEncrypted: true
-      DeletionPolicy: Delete
-      KmsKeyId: !Ref AuroraKMSCMK
-      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBClusterParameterGroupName: default.aurora-postgresql10
       DBSubnetGroupName: !Ref DBSubnetGroup
       VpcSecurityGroupIds:
         - !Ref ClusterSecurityGroup

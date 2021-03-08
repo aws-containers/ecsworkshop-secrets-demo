@@ -183,16 +183,8 @@ Resources:
         IncludeSpace: false
         PasswordLength: 16
 
-  SecretAuroraClusterAttachment:
-    Type: AWS::SecretsManager::SecretTargetAttachment
-    Properties:
-      SecretId: !Ref AuroraSecret
-      TargetId: !Ref AuroraDBCluster
-      TargetType: AWS::RDS::DBCluster
-
   SecretRotationTemplate:
     Type: AWS::Serverless::Application
-    DependsOn: SecretAuroraClusterAttachment
     Properties:
       Location:
         ApplicationId: arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser
@@ -240,6 +232,7 @@ Resources:
 
   SecretRotationSchedule:
     Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: SecretAuroraClusterAttachment
     Properties:
       SecretId: !Ref AuroraSecret
       RotationLambdaARN: !GetAtt SecretRotationTemplate.Outputs.RotationLambdaARN
@@ -282,6 +275,13 @@ Resources:
         MinCapacity: 2
         MaxCapacity: 8
         SecondsUntilAutoPause: 1000
+
+  SecretAuroraClusterAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref AuroraSecret
+      TargetId: !Ref AuroraDBCluster
+      TargetType: AWS::RDS::DBCluster
 
 Outputs:
   PostgresHost: # injected as POSTGRES_HOST environment variable by Copilot.

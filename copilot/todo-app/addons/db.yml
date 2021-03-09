@@ -275,6 +275,7 @@ Resources:
         MinCapacity: 2
         MaxCapacity: 8
         SecondsUntilAutoPause: 1000
+    DeletionPolicy: Delete
 
   SecretAuroraClusterAttachment:
     Type: AWS::SecretsManager::SecretTargetAttachment

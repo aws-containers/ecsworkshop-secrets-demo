@@ -285,62 +285,6 @@ Resources:
       TargetType: AWS::RDS::DBCluster
 
 Outputs:
-  PostgresHost: # injected as POSTGRES_HOST environment variable by Copilot.
-    Description: "The connection endpoint for the DB cluster."
-    Value:
-      !Join [
-        "",
-        [
-          "{{resolve:secretsmanager:",
-          !Ref AuroraSecret,
-          ":SecretString:host}}",
-        ],
-      ]
-
-  PostgresPass: # injected as POSTGRES_PASS environment variable by Copilot.
-    Description: "The secret that username and password."
-    Value:
-      !Join [
-        "",
-        [
-          "{{resolve:secretsmanager:",
-          !Ref AuroraSecret,
-          ":SecretString:password}}",
-        ],
-      ]
-
-  PostgresUser: # injected as POSTGRES_USER environment variable by Copilot.
-    Description: "username"
-    Value:
-      !Join [
-        "",
-        [
-          "{{resolve:secretsmanager:",
-          !Ref AuroraSecret,
-          ":SecretString:username}}",
-        ],
-      ]
-
-  PostgresName: # injected as POSTGRES_NAME environment variable by Copilot.
-    Description: "db name"
-    Value:
-      !Join [
-        "",
-        [
-          "{{resolve:secretsmanager:",
-          !Ref AuroraSecret,
-          ":SecretString:dbname}}",
-        ],
-      ]
-
-  PostgresPort: # injected as POSTGRES_PORT environment variable by Copilot.
-    Description: "port"
-    Value:
-      !Join [
-        "",
-        [
-          "{{resolve:secretsmanager:",
-          !Ref AuroraSecret,
-          ":SecretString:port}}",
-        ],
-      ]
+  PostgresData: # injected as POSTGRES_DATA environment variable by Copilot.
+    Description: "The JSON secret that holds the database username and password. Fields are 'host', 'dbname', 'username', 'password'"
+    Value: !Ref AuroraSecret

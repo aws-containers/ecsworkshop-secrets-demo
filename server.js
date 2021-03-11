@@ -6,13 +6,15 @@ const cors = require('cors');
 const app = express();
 const port = 4000;
 
+const creds = JSON.parse(process.env.POSTGRES_DATA);
+
 const Pool = require('pg').Pool;
 const pool = new Pool({
-    user: process.env.POSTGRES_USER,
-    host: process.env.POSTGRES_HOST,
-    database: process.env.POSTGRES_NAME,
-    password: process.env.POSTGRES_PASS,
-    port: process.env.POSTGRES_PORT,
+    user: creds.username,
+    host: creds.host,
+    database: creds.dbname,
+    password: creds.password,
+    port: creds.port,
 });
 
 app.use(bodyParser.json());
@@ -117,6 +119,9 @@ app.get('/env', function (req, res) {
     res.status(200).json(result);
 });
 
+app.get('/creds', function (req, res) {
+    res.send(`<ul><li>Host is ${creds.host}</li><li>dbname is ${creds.dbname}</li><li>port is ${creds.port}</li><li>password is ${creds.password}</li><li>user is ${creds.username}</li></ul>`);
+});
 
 //Start Server
 app.listen(port, () => {

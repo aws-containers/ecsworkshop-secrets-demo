@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const app = express();
@@ -17,9 +16,9 @@ const pool = new Pool({
     port: creds.port,
 });
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(
-    bodyParser.urlencoded({
+    express.urlencoded({
         extended: true,
     })
 );
@@ -33,7 +32,7 @@ app.use(cors(corsOptions));
 //Routers
 
 app.use(express.static(path.join(__dirname, 'build')));
-app.get('/', function (req, res) {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
@@ -114,13 +113,23 @@ app.get('/migrate', async (req, res) => {
     }
 });
 
-app.get('/env', function (req, res) {
+app.get('/env', (req, res) => {
     let result = process.env;
     res.status(200).json(result);
 });
 
-app.get('/creds', function (req, res) {
+app.get('/creds', (req, res) => {
     res.send(`<ul><li>Host is ${creds.host}</li><li>dbname is ${creds.dbname}</li><li>port is ${creds.port}</li><li>password is ${creds.password}</li><li>user is ${creds.username}</li></ul>`);
+});
+
+app.get('/parameter-store-demo', (req, res) => {
+    const envParam = process.env.DEMO_PARAMETER;
+    if (envParam) {
+        res.send(`{ "value" : "${envParam}" }`);
+    } else {
+        res.send(`{ "value" : "" }`);
+    }
+
 });
 
 //Start Server

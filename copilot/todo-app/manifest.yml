@@ -36,10 +36,6 @@ count: 1
 variables: # Pass environment variables as key value pairs.
   LOG_LEVEL: info
 #
-Secrets:
-  - Name: POSTGRES_DATA
-    ValueFrom:
-      Fn::GetAtt: [AddonsStack, Outputs.PostgresPass]
 # You can override any of the values defined above by environment.
 #environments:
 #  test:

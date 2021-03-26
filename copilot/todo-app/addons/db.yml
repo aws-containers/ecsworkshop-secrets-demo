@@ -248,27 +248,3 @@ Outputs:
   PostgresData: # injected as POSTGRES_DATA environment variable by Copilot.
     Description: "The JSON secret that holds the database username and password. Fields are 'host', 'dbname', 'username', 'password'"
     Value: !Ref AuroraSecret
-
-  AuroraDBCluster:
-    Description: "Cluster Reference for Credential Rotation"
-    Value: !Ref AuroraDBCluster
-    Export:
-      Name: AuroraDBCluster
-
-  RotationSecurityGroup:
-    Description: "The Credential Rotation Security Group"
-    Value: !Ref RotationSecurityGroup
-    Export:
-      Name: RotationSecurityGroup
-
-  SecretAuroraClusterAttachment:
-    Description: "The Credential Attachment to the Cluster"
-    Value: !Ref SecretAuroraClusterAttachment
-    Export:
-      Name: SecretAuroraClusterAttachment
-
-  AuroraSecret:
-    Description: "The secret credential to pass to rotation stack"
-    Value: !Ref AuroraSecret
-    Export:
-      Name: AuroraSecret

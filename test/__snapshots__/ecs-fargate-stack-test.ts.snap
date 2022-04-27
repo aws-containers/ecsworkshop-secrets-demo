@@ -1,0 +1,426 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot Tests 1`] = `
+Object {
+  "Outputs": Object {
+    "fargateServiceLoadBalancerDNS860F106E": Object {
+      "Value": Object {
+        "Fn::GetAtt": Array [
+          "fargateServiceLB86336A25",
+          "DNSName",
+        ],
+      },
+    },
+    "fargateServiceServiceURLF2E0D240": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "http://",
+            Object {
+              "Fn::GetAtt": Array [
+                "fargateServiceLB86336A25",
+                "DNSName",
+              ],
+            },
+          ],
+        ],
+      },
+    },
+  },
+  "Resources": Object {
+    "ClusterEB0386A7": Object {
+      "Properties": Object {
+        "ClusterName": "fargateClusterDemo",
+      },
+      "Type": "AWS::ECS::Cluster",
+    },
+    "fargateService93A22105": Object {
+      "DependsOn": Array [
+        "fargateServiceLBPublicListenerECSGroup06AA997E",
+        "fargateServiceLBPublicListenerDFE1BC97",
+      ],
+      "Properties": Object {
+        "Cluster": Object {
+          "Ref": "ClusterEB0386A7",
+        },
+        "DeploymentConfiguration": Object {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50,
+        },
+        "DesiredCount": 1,
+        "EnableECSManagedTags": false,
+        "HealthCheckGracePeriodSeconds": 60,
+        "LaunchType": "FARGATE",
+        "LoadBalancers": Array [
+          Object {
+            "ContainerName": "web",
+            "ContainerPort": 80,
+            "TargetGroupArn": Object {
+              "Ref": "fargateServiceLBPublicListenerECSGroup06AA997E",
+            },
+          },
+        ],
+        "NetworkConfiguration": Object {
+          "AwsvpcConfiguration": Object {
+            "AssignPublicIp": "DISABLED",
+            "SecurityGroups": Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "fargateServiceSecurityGroup030B57B1",
+                  "GroupId",
+                ],
+              },
+            ],
+            "Subnets": Array [
+              Object {
+                "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCprivateSubnet1Subnet3A829D6F085AFE1B",
+              },
+              Object {
+                "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCprivateSubnet2Subnet786F2147249A5054",
+              },
+            ],
+          },
+        },
+        "ServiceName": "fargateServiceDemo",
+        "TaskDefinition": Object {
+          "Ref": "fargateServiceTaskDef0F9F699C",
+        },
+      },
+      "Type": "AWS::ECS::Service",
+    },
+    "fargateServiceLB86336A25": Object {
+      "Properties": Object {
+        "LoadBalancerAttributes": Array [
+          Object {
+            "Key": "deletion_protection.enabled",
+            "Value": "false",
+          },
+        ],
+        "Scheme": "internet-facing",
+        "SecurityGroups": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "fargateServiceLBSecurityGroupCCB39324",
+              "GroupId",
+            ],
+          },
+        ],
+        "Subnets": Array [
+          Object {
+            "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCpublicSubnet1Subnet121CA2095C52713A",
+          },
+          Object {
+            "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCpublicSubnet2Subnet91B14F62693589AB",
+          },
+        ],
+        "Type": "application",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+    },
+    "fargateServiceLBPublicListenerDFE1BC97": Object {
+      "Properties": Object {
+        "DefaultActions": Array [
+          Object {
+            "TargetGroupArn": Object {
+              "Ref": "fargateServiceLBPublicListenerECSGroup06AA997E",
+            },
+            "Type": "forward",
+          },
+        ],
+        "LoadBalancerArn": Object {
+          "Ref": "fargateServiceLB86336A25",
+        },
+        "Port": 80,
+        "Protocol": "HTTP",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+    },
+    "fargateServiceLBPublicListenerECSGroup06AA997E": Object {
+      "Properties": Object {
+        "Port": 80,
+        "Protocol": "HTTP",
+        "TargetType": "ip",
+        "VpcId": Object {
+          "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCEB5EA86E11F669E4",
+        },
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+    },
+    "fargateServiceLBSecurityGroupCCB39324": Object {
+      "Properties": Object {
+        "GroupDescription": "Automatically created Security Group for ELB ECSStackfargateServiceLBE3F31101",
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow from anyone on port 80",
+            "FromPort": 80,
+            "IpProtocol": "tcp",
+            "ToPort": 80,
+          },
+        ],
+        "VpcId": Object {
+          "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCEB5EA86E11F669E4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "fargateServiceLBSecurityGrouptoECSStackfargateServiceSecurityGroupE14A23198067321440": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "fargateServiceSecurityGroup030B57B1",
+            "GroupId",
+          ],
+        },
+        "FromPort": 80,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "fargateServiceLBSecurityGroupCCB39324",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "ToPort": 80,
+      },
+      "Type": "AWS::EC2::SecurityGroupEgress",
+    },
+    "fargateServiceSecurityGroup030B57B1": Object {
+      "Properties": Object {
+        "GroupDescription": "ECSStack/fargateService/Service/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCEB5EA86E11F669E4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "fargateServiceSecurityGroupfromECSStackfargateServiceLBSecurityGroupB87374D8808059535C": Object {
+      "Properties": Object {
+        "Description": "Load balancer to target",
+        "FromPort": 80,
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "fargateServiceSecurityGroup030B57B1",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "fargateServiceLBSecurityGroupCCB39324",
+            "GroupId",
+          ],
+        },
+        "ToPort": 80,
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "fargateServiceTaskDef0F9F699C": Object {
+      "Properties": Object {
+        "ContainerDefinitions": Array [
+          Object {
+            "Essential": true,
+            "LogConfiguration": Object {
+              "LogDriver": "awslogs",
+              "Options": Object {
+                "awslogs-group": Object {
+                  "Ref": "fargateServiceTaskDefwebLogGroupEEF055A2",
+                },
+                "awslogs-region": Object {
+                  "Ref": "AWS::Region",
+                },
+                "awslogs-stream-prefix": "fargateService",
+              },
+            },
+            "Name": "web",
+            "PortMappings": Array [
+              Object {
+                "ContainerPort": 80,
+                "Protocol": "tcp",
+              },
+            ],
+            "Secrets": Array [
+              Object {
+                "Name": "POSTGRES_USER",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::ImportValue": "RDSStack:ExportsOutputRefdbCredentialsSecretCA7419D4B6FC4F5C",
+                      },
+                      ":username::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "POSTGRES_PASS",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::ImportValue": "RDSStack:ExportsOutputRefdbCredentialsSecretCA7419D4B6FC4F5C",
+                      },
+                      ":password::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "POSTGRES_HOST",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::ImportValue": "RDSStack:ExportsOutputRefdbCredentialsSecretCA7419D4B6FC4F5C",
+                      },
+                      ":host::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "POSTGRES_PORT",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::ImportValue": "RDSStack:ExportsOutputRefdbCredentialsSecretCA7419D4B6FC4F5C",
+                      },
+                      ":port::",
+                    ],
+                  ],
+                },
+              },
+              Object {
+                "Name": "POSTGRES_NAME",
+                "ValueFrom": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::ImportValue": "RDSStack:ExportsOutputRefdbCredentialsSecretCA7419D4B6FC4F5C",
+                      },
+                      ":dbname::",
+                    ],
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+        "Cpu": "256",
+        "ExecutionRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "fargateServiceTaskDefExecutionRoleCCD76BD1",
+            "Arn",
+          ],
+        },
+        "Family": "ECSStackfargateServiceTaskDefC0E753DB",
+        "Memory": "512",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": Array [
+          "FARGATE",
+        ],
+        "TaskRoleArn": Object {
+          "Fn::GetAtt": Array [
+            "fargateServiceTaskDefTaskRoleBD1318D3",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ECS::TaskDefinition",
+    },
+    "fargateServiceTaskDefExecutionRoleCCD76BD1": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "fargateServiceTaskDefExecutionRoleDefaultPolicyEDBDA6E8": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "fargateServiceTaskDefwebLogGroupEEF055A2",
+                  "Arn",
+                ],
+              },
+            },
+            Object {
+              "Action": Array [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::ImportValue": "RDSStack:ExportsOutputRefdbCredentialsSecretCA7419D4B6FC4F5C",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "fargateServiceTaskDefExecutionRoleDefaultPolicyEDBDA6E8",
+        "Roles": Array [
+          Object {
+            "Ref": "fargateServiceTaskDefExecutionRoleCCD76BD1",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "fargateServiceTaskDefTaskRoleBD1318D3": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ecs-tasks.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "fargateServiceTaskDefwebLogGroupEEF055A2": Object {
+      "DeletionPolicy": "Retain",
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+    },
+  },
+}
+`;

@@ -1,0 +1,273 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Snapshot Tests 1`] = `
+Object {
+  "Resources": Object {
+    "dbCredentialsRotation79020087": Object {
+      "Properties": Object {
+        "Location": Object {
+          "ApplicationId": "arn:aws:serverlessrepo:us-east-1:297356227824:applications/SecretsManagerRDSPostgreSQLRotationSingleUser",
+          "SemanticVersion": "1.1.60",
+        },
+        "Parameters": Object {
+          "endpoint": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "https://secretsmanager.",
+                Object {
+                  "Ref": "AWS::Region",
+                },
+                ".",
+                Object {
+                  "Ref": "AWS::URLSuffix",
+                },
+              ],
+            ],
+          },
+          "functionName": "RDSStackdbCredentialsRotationC27B26BD",
+          "vpcSecurityGroupIds": Object {
+            "Fn::GetAtt": Array [
+              "dbCredentialsRotationSecurityGroup369F1392",
+              "GroupId",
+            ],
+          },
+          "vpcSubnetIds": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCprivateSubnet1Subnet3A829D6F085AFE1B",
+                },
+                ",",
+                Object {
+                  "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCprivateSubnet2Subnet786F2147249A5054",
+                },
+              ],
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Serverless::Application",
+    },
+    "dbCredentialsRotationSecurityGroup369F1392": Object {
+      "Properties": Object {
+        "GroupDescription": "RDSStack/dbCredentialsRotation/SecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCEB5EA86E11F669E4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "dbCredentialsSecretAttachment74E2BBA8": Object {
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "dbCredentialsSecretCA7419D4",
+        },
+        "TargetId": Object {
+          "Ref": "postgresRdsServerlessA07A995D",
+        },
+        "TargetType": "AWS::RDS::DBCluster",
+      },
+      "Type": "AWS::SecretsManager::SecretTargetAttachment",
+    },
+    "dbCredentialsSecretCA7419D4": Object {
+      "Properties": Object {
+        "GenerateSecretString": Object {
+          "ExcludePunctuation": true,
+          "GenerateStringKey": "password",
+          "IncludeSpace": false,
+          "SecretStringTemplate": "{}",
+        },
+        "Name": "serverless-credentials",
+      },
+      "Type": "AWS::SecretsManager::Secret",
+    },
+    "dbCredentialsSecretPolicy9F3D95E3": Object {
+      "Properties": Object {
+        "ResourcePolicy": Object {
+          "Statement": Array [
+            Object {
+              "Action": "secretsmanager:DeleteSecret",
+              "Effect": "Deny",
+              "Principal": Object {
+                "AWS": Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":iam::",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":root",
+                    ],
+                  ],
+                },
+              },
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "SecretId": Object {
+          "Ref": "dbCredentialsSecretCA7419D4",
+        },
+      },
+      "Type": "AWS::SecretsManager::ResourcePolicy",
+    },
+    "dbCredentialsSecretRotationScheduleB177EFD0": Object {
+      "Properties": Object {
+        "RotationLambdaARN": Object {
+          "Fn::GetAtt": Array [
+            "dbCredentialsRotation79020087",
+            "Outputs.RotationLambdaARN",
+          ],
+        },
+        "RotationRules": Object {
+          "AutomaticallyAfterDays": 30,
+        },
+        "SecretId": Object {
+          "Ref": "dbCredentialsSecretCA7419D4",
+        },
+      },
+      "Type": "AWS::SecretsManager::RotationSchedule",
+    },
+    "postgresRdsServerlessA07A995D": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "DBClusterParameterGroupName": "default.aurora-postgresql10",
+        "DBSubnetGroupName": Object {
+          "Ref": "postgresRdsServerlessSubnets9121D013",
+        },
+        "DeletionProtection": false,
+        "EnableHttpEndpoint": true,
+        "Engine": "aurora-postgresql",
+        "EngineMode": "serverless",
+        "MasterUserPassword": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{{resolve:secretsmanager:",
+              Object {
+                "Ref": "dbCredentialsSecretCA7419D4",
+              },
+              ":SecretString:password::}}",
+            ],
+          ],
+        },
+        "MasterUsername": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{{resolve:secretsmanager:",
+              Object {
+                "Ref": "dbCredentialsSecretCA7419D4",
+              },
+              ":SecretString:username::}}",
+            ],
+          ],
+        },
+        "ScalingConfiguration": Object {
+          "AutoPause": true,
+          "MaxCapacity": 32,
+          "MinCapacity": 8,
+          "SecondsUntilAutoPause": 600,
+        },
+        "StorageEncrypted": true,
+        "VpcSecurityGroupIds": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "postgresRdsServerlessSecurityGroupFB8125BF",
+              "GroupId",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBCluster",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "postgresRdsServerlessSecurityGroupFB8125BF": Object {
+      "Properties": Object {
+        "GroupDescription": "RDS security group",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "from 0.0.0.0/0:5432",
+            "FromPort": 5432,
+            "IpProtocol": "tcp",
+            "ToPort": 5432,
+          },
+        ],
+        "VpcId": Object {
+          "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCEB5EA86E11F669E4",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "postgresRdsServerlessSecurityGroupfromRDSStackdbCredentialsRotationSecurityGroup40A8E460IndirectPortBAFAE787": Object {
+      "Properties": Object {
+        "Description": "from RDSStackdbCredentialsRotationSecurityGroup40A8E460:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "postgresRdsServerlessA07A995D",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "postgresRdsServerlessSecurityGroupFB8125BF",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "dbCredentialsRotationSecurityGroup369F1392",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "postgresRdsServerlessA07A995D",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "postgresRdsServerlessSubnets9121D013": Object {
+      "Properties": Object {
+        "DBSubnetGroupDescription": "Subnets for postgresRdsServerless database",
+        "SubnetIds": Array [
+          Object {
+            "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCprivateSubnet1Subnet3A829D6F085AFE1B",
+          },
+          Object {
+            "Fn::ImportValue": "VPCStack:ExportsOutputRefWorkshopVPCprivateSubnet2Subnet786F2147249A5054",
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBSubnetGroup",
+    },
+  },
+  "Transform": "AWS::Serverless-2016-10-31",
+}
+`;

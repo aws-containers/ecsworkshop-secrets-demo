@@ -18,9 +18,8 @@ export class ECSStack extends Stack {
     const containerImage = this.node.tryGetContext("containerImage");
     const creds = sm.Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
 
-    const cluster = new ecs.Cluster(this, 'Cluster', {
+    const cluster = new ecs.Cluster(this, 'fargateClusterDemo', {
       vpc: props.vpc,
-      clusterName: 'fargateClusterDemo'
     });
 
     const fargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, "fargateService", {

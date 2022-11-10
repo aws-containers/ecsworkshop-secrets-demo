@@ -36,7 +36,7 @@ export class RDSStack extends Stack {
             parameterGroup: rds.ParameterGroup.fromParameterGroupName(this, 'ParameterGroup', 'default.aurora-postgresql10'),
             vpc: props.vpc,
             enableDataApi: true,
-            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
             credentials: rds.Credentials.fromSecret(this.dbSecret, dbUser),
             scaling: {
                 autoPause: Duration.minutes(10), // default is to pause after 5 minutes of idle time

@@ -1,7 +1,7 @@
 import { App, StackProps, Stack, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
-import * as sm from 'aws-cdk-lib/aws-secretsmanager';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 
 export interface RDSStackProps extends StackProps {
     vpc: ec2.Vpc
@@ -19,7 +19,7 @@ export class RDSStack extends Stack {
         const dbName = this.node.tryGetContext("dbName");
         const dbPort = this.node.tryGetContext("dbPort") || 5432;
 
-        this.dbSecret = new sm.Secret(this, 'dbCredentialsSecret', {
+        this.dbSecret = new secretsmanager.Secret(this, 'dbCredentialsSecret', {
             secretName: "ecsworkshop/test/todo-app/aurora-pg",
             generateSecretString: {
                 secretStringTemplate: JSON.stringify({

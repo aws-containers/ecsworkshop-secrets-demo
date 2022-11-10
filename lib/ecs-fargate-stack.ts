@@ -1,6 +1,7 @@
 import { App, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib';
+import * as ecsPatterns from 'aws-cdk-lib';
 import * as sm from 'aws-cdk-lib/aws-secretsmanager';
 
 export interface ECSStackProps extends StackProps {
@@ -17,12 +18,12 @@ export class ECSStack extends Stack {
     const containerImage = this.node.tryGetContext("containerImage");
     const creds = sm.Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
 
-    const cluster = new Cluster(this, 'Cluster', {
+    const cluster = new ecs.Cluster(this, 'Cluster', {
       vpc: props.vpc,
       clusterName: 'fargateClusterDemo'
     });
 
-    const fargateService = new ecs.ApplicationLoadBalancedFargateService(this, "fargateService", {
+    const fargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, "fargateService", {
       cluster,
       taskImageOptions: {
         image: ecs.ContainerImage.fromRegistry(containerImage),

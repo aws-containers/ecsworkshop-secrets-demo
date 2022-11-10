@@ -27,7 +27,7 @@ export class VPCStack extends Stack {
                 {
                     cidrMask: 24,
                     name: 'private',
-                    subnetType: ec2.SubnetType.PRIVATE,
+                    subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
                 },
             ],
         });

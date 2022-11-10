@@ -1,5 +1,5 @@
 import { SynthUtils, expect as expectCDK, haveResource, countResources } from '@aws-cdk/assert';
-import { App } from '@aws-cdk/core';
+import { App } from 'aws-cdk-lib';;
 import { RDSStack } from '../lib/rds-stack';
 import { VPCStack } from '../lib/vpc-stack';
 import '@aws-cdk/assert/jest';

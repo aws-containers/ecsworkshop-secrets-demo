@@ -50,12 +50,12 @@ export class RDSStack extends Stack {
 
         this.postgresRDSserverless.connections.allowDefaultPortFromAnyIpv4;
 
-        new sm.SecretRotation(
+        new secretsmanager.SecretRotation(
             this,
             `ecsworkshop/test/todo-app/aurora-pg`,
             {
                 secret: this.dbSecret,
-                application: sm.SecretRotationApplication.POSTGRES_ROTATION_SINGLE_USER,
+                application: secretsmanager.SecretRotationApplication.POSTGRES_ROTATION_SINGLE_USER,
                 vpc: props.vpc,
                 vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
                 target: this.postgresRDSserverless,

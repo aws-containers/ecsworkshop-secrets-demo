@@ -17,6 +17,7 @@ export class RDSStack extends Stack {
 
         const dbUser = this.node.tryGetContext("dbUser");
         const dbName = this.node.tryGetContext("dbName");
+        const dbPort = this.node.tryGetContext("dbPort") || 5432;
 
         this.dbSecret = new secretsmanager.Secret(this, 'dbCredentialsSecret', {
             secretName: "ecsworkshop/test/todo-app/aurora-pg",
@@ -47,7 +48,7 @@ export class RDSStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY
         });
 
-        this.postgresRDSserverless.connections.allowDefaultPortFromAnyIpv4();
+        this.postgresRDSserverless.connections.allowFromAnyIpv4(ec2.Port.tcp(dbPort));
 
         new secretsmanager.SecretRotation(
             this,

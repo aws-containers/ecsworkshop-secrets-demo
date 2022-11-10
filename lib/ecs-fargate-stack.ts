@@ -30,7 +30,7 @@ export class ECSStack extends Stack {
         containerPort: containerPort,
         enableLogging: true,
         secrets: {
-          POSTGRES_DATA: sm.ECSSecret.fromSecretsManager(creds)
+          POSTGRES_DATA: ecs.Secret.fromSecretsManager(creds)
         }
       },
       desiredCount: 1,

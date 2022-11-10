@@ -1,9 +1,9 @@
-import { App, StackProps, Stack, Duration, RemovalPolicy, CfnOutput } from "@aws-cdk/core";
+import { App, StackProps, Stack, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
 import {
     DatabaseSecret, Credentials, ServerlessCluster, DatabaseClusterEngine, ParameterGroup, AuroraCapacityUnit
-} from '@aws-cdk/aws-rds';
-import { Vpc, Port, SubnetType } from '@aws-cdk/aws-ec2';
-import { Secret, SecretRotation, SecretRotationApplication } from '@aws-cdk/aws-secretsmanager';
+} from 'aws-cdk-lib';
+import { Vpc, Port, SubnetType } from 'aws-cdk-lib';
+import { Secret, SecretRotation, SecretRotationApplication } from 'aws-cdk-lib';
 
 export interface RDSStackProps extends StackProps {
     vpc: Vpc

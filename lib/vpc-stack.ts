@@ -1,5 +1,6 @@
-import { App, Stack, StackProps, Construct } from '@aws-cdk/core';
-import { Vpc, SubnetType } from '@aws-cdk/aws-ec2'
+import { Construct } from 'constructs';
+import { App, Stack, StackProps } from 'aws-cdk-lib';
+import { Vpc, SubnetType } from 'aws-cdk-lib'
 
 export interface VpcProps extends StackProps {
     maxAzs: number;

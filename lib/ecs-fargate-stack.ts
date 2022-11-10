@@ -1,8 +1,7 @@
-import { App, Stack, StackProps, CfnOutput } from '@aws-cdk/core';
-import { Vpc } from "@aws-cdk/aws-ec2";
-import { Cluster, ContainerImage, Secret as ECSSecret } from "@aws-cdk/aws-ecs";
-import { ApplicationLoadBalancedFargateService } from '@aws-cdk/aws-ecs-patterns';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
+import { App, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import { Vpc } from 'aws-cdk-lib';
+import { Cluster, ContainerImage, Secret as ECSSecret } from 'aws-cdk-lib';
+import { Secret } from 'aws-cdk-lib';
 
 export interface ECSStackProps extends StackProps {
   vpc: Vpc

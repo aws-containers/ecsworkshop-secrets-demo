@@ -17,7 +17,7 @@ export class VPCStack extends Stack {
         }
 
         this.vpc = new ec2.Vpc(this, 'ecsWorkshopVPC', {
-            cidr: "10.0.0.0/16",
+            ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
             subnetConfiguration: [
                 {
                     cidrMask: 24,

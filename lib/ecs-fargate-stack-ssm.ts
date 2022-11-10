@@ -2,9 +2,11 @@ import { App, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecsPatterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as secretsmanager from '@aws-cdk-lib/aws-secretsmanager';
+
 
 //SSM Parameter imports
-import * as sm from 'aws-cdk-lib/aws-secretsmanager';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 export interface ECSStackProps extends StackProps {
     vpc: ec2.Vpc
@@ -18,10 +20,10 @@ export class ECSStack extends Stack {
 
         const containerPort = this.node.tryGetContext("containerPort");
         const containerImage = this.node.tryGetContext("containerImage");
-        const creds = sm.Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
+        const creds = secretsmanager.Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
 
         //fetch existing parameter from parameter store securely
-        const DEMOPARAM = sm.StringParameter.fromSecureStringParameterAttributes(this, 'demo_param', {
+        const DEMOPARAM = ssm.StringParameter.fromSecureStringParameterAttributes(this, 'demo_param', {
             parameterName: 'DEMO_PARAMETER',
             version: 1
         });

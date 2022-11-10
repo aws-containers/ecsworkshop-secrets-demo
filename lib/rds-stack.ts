@@ -37,8 +37,8 @@ export class RDSStack extends Stack {
             parameterGroup: rds.ParameterGroup.fromParameterGroupName(this, 'ParameterGroup', 'default.aurora-postgresql10'),
             vpc: props.vpc,
             enableDataApi: true,
-            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE },
-            credentials: sm.Credentials.fromSecret(this.dbSecret, dbUser),
+            vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+            credentials: rds.Credentials.fromSecret(this.dbSecret, dbUser),
             scaling: {
                 autoPause: Duration.minutes(10), // default is to pause after 5 minutes of idle time
                 minCapacity: rds.AuroraCapacityUnit.ACU_8, // default is 2 Aurora capacity units (ACUs)
@@ -49,7 +49,7 @@ export class RDSStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY
         });
 
-        this.postgresRDSserverless.connections.allowFromAnyIpv4(Port.tcp(dbPort));
+        this.postgresRDSserverless.connections.allowDefaultPortFromAnyIpv4;
 
         new sm.SecretRotation(
             this,

@@ -1,10 +1,10 @@
 import { App, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
-import { Vpc } from 'aws-cdk-lib';
-import { Cluster, ContainerImage, Secret as ECSSecret } from 'aws-cdk-lib';
-import { Secret } from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib';
+import * as sm from 'aws-cdk-lib/aws-secretsmanager';
 
 export interface ECSStackProps extends StackProps {
-  vpc: Vpc
+  vpc: ec2.Vpc
   dbSecretArn: string
 }
 
@@ -15,21 +15,21 @@ export class ECSStack extends Stack {
 
     const containerPort = this.node.tryGetContext("containerPort");
     const containerImage = this.node.tryGetContext("containerImage");
-    const creds = Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
+    const creds = sm.Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
 
     const cluster = new Cluster(this, 'Cluster', {
       vpc: props.vpc,
       clusterName: 'fargateClusterDemo'
     });
 
-    const fargateService = new ApplicationLoadBalancedFargateService(this, "fargateService", {
+    const fargateService = new ecs.ApplicationLoadBalancedFargateService(this, "fargateService", {
       cluster,
       taskImageOptions: {
-        image: ContainerImage.fromRegistry(containerImage),
+        image: ecs.ContainerImage.fromRegistry(containerImage),
         containerPort: containerPort,
         enableLogging: true,
         secrets: {
-          POSTGRES_DATA: ECSSecret.fromSecretsManager(creds)
+          POSTGRES_DATA: sm.ECSSecret.fromSecretsManager(creds)
         }
       },
       desiredCount: 1,

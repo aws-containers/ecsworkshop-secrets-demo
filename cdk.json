@@ -1,0 +1,10 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/secret-ecs-app.ts",
+  "context": {
+    "dbName": "tododb",
+    "dbUser": "postgres",
+    "dbPort": 5432,
+    "containerPort": 4000,
+    "containerImage": "registry.hub.docker.com/mptaws/secretecs"
+  }
+}

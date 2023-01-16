@@ -1,4 +1,4 @@
-import { App } from '@aws-cdk/core';
+import { App } from 'aws-cdk-lib';
 import { VPCStack } from '../lib/vpc-stack';
 import { RDSStack } from '../lib/rds-stack';
 import { ECSStack } from '../lib/ecs-fargate-stack';

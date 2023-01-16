@@ -1,15 +1,15 @@
-import { App, Stack, StackProps, CfnOutput } from '@aws-cdk/core';
-import { Vpc } from "@aws-cdk/aws-ec2";
-import { Cluster, ContainerImage, Secret as ECSSecret } from "@aws-cdk/aws-ecs";
-import { ApplicationLoadBalancedFargateService } from '@aws-cdk/aws-ecs-patterns';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
+import { App, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecsPatterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+
 
 //SSM Parameter imports
-import { SecretValue } from '@aws-cdk/core';
-import { StringParameter, ParameterTier } from "@aws-cdk/aws-ssm";
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 export interface ECSStackProps extends StackProps {
-    vpc: Vpc
+    vpc: ec2.Vpc
     dbSecretArn: string
 }
 
@@ -20,29 +20,29 @@ export class ECSStack extends Stack {
 
         const containerPort = this.node.tryGetContext("containerPort");
         const containerImage = this.node.tryGetContext("containerImage");
-        const creds = Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
+        const creds = secretsmanager.Secret.fromSecretCompleteArn(this, 'postgresCreds', props.dbSecretArn);
 
         //fetch existing parameter from parameter store securely
-        const DEMOPARAM = StringParameter.fromSecureStringParameterAttributes(this, 'demo_param', {
+        const DEMOPARAM = ssm.StringParameter.fromSecureStringParameterAttributes(this, 'demo_param', {
             parameterName: 'DEMO_PARAMETER',
             version: 1
         });
 
-        const cluster = new Cluster(this, 'Cluster', {
+        const cluster = new ecs.Cluster(this, 'Cluster', {
             vpc: props.vpc,
             clusterName: 'fargateClusterDemo'
         });
 
-        const fargateService = new ApplicationLoadBalancedFargateService(this, "fargateService", {
+        const fargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, "fargateService", {
             cluster,
             taskImageOptions: {
-                image: ContainerImage.fromRegistry(containerImage),
+                image: ecs.ContainerImage.fromRegistry(containerImage),
                 containerPort: containerPort,
                 enableLogging: true,
                 secrets: {
-                    POSTGRES_DATA: ECSSecret.fromSecretsManager(creds),
+                    POSTGRES_DATA: ecs.Secret.fromSecretsManager(creds),
                     //Inject parameters value securely
-                    DEMO_PARAMETER: ECSSecret.fromSsmParameter(DEMOPARAM),
+                    DEMO_PARAMETER: ecs.Secret.fromSsmParameter(DEMOPARAM),
                 },
             },
             desiredCount: 1,
